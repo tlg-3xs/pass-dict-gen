@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 import sys, argparse, datetime
-
+#Just for testing
 def arg_parser():
     parser = argparse.ArgumentParser(description="Creates a custom password wordlist from a set of keywords and phrases.")
     parser.add_argument('-i','--input',dest='input', type=argparse.FileType('r'), default=sys.stdin, nargs='?', help='Input file for keywords. If not specified defaults to stdin.')
