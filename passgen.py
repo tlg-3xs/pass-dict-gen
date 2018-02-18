@@ -39,7 +39,7 @@ def main(args):
                     if x.find('a')!=-1 or x.find('A')!=-1:
                         total.add(x.replace('a','@').replace('A','@'))
             result.update(total)
-    total.clear()
+    total=set()
     for x in result:
         total.update(base(x,len(words)))
     result.update(total)
