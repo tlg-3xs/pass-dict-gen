@@ -14,27 +14,29 @@ def arg_parser():
 
 def main(args):
     result=set()
-    if args.all:
-        args.year.append(datetime.datetime.now().year)
+    if args.all: #check if --all flag has been set
+        args.year.append(datetime.datetime.now().year) #add the current year to the list
     args.year=list(set(args.year)) #remove duplicates if there's any
-    for lines in args.input:
+    for lines in args.input: #read from choosen input
         words = lines.strip().split()
         for i in range(len(words)):
             w = words.pop(0)
             words.append(w.capitalize())
         w = ''.join(words)
         result.add(w)
-        if len(words) > 1:
+        result.add(w.lower())
+        if len(words) > 1: #check if it's a single word or a sentence
             result.add('_'.join(words))
-        if args.l337 or args.all:
+            result.add('_'.join(words).lower())
+        if args.l337 or args.all: #check if l337 or --all flags has been set
             result.update(f_l337(w,args))
         else:
             total=set()
-            if args.dollar:
+            if args.dollar: #check if dollar flag has been set
                 for x in result:
                     if x.find('s')!=-1 or x.find('S')!=-1:
                         total.add(x.replace('s','$').replace('S','$'))
-            if args.at:
+            if args.at: #check if at flag has been set
                 for x in result:
                     if x.find('a')!=-1 or x.find('A')!=-1:
                         total.add(x.replace('a','@').replace('A','@'))
@@ -49,8 +51,7 @@ def main(args):
 def base(w, length):
     result=year_signs(w)
     result.update(year_signs(w.lower()))
-    if not w.isupper():
-        result.update(year_signs(w.upper()))
+    result.update(year_signs(w.upper()))
     if length > 1: #w was a single word originally, it comes capitalized in first place. This is a check for avoid duplicates.
         result.update(year_signs(w.capitalize()))
     if hasVowel(w):
