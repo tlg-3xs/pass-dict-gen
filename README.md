@@ -9,7 +9,7 @@ At the moment, it's features are:
 - Makes combinations with punctuation symbols.
 
 ToDo:
-- Make the code clearer and faster.
+- Make the code clearer.
 ```
 usage: passgen.py [-h] [-i [INPUT]] [-o [OUTPUT]] [-y [YEAR]] [--all] [-d] [-at] [-l]
 
