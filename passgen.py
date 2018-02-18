@@ -13,7 +13,7 @@ def arg_parser():
     return parser.parse_args()
 
 def main(args):
-    result=[]
+    result=set()
     if args.all:
         args.year.append(datetime.datetime.now().year)
     args.year=list(set(args.year))
@@ -23,89 +23,90 @@ def main(args):
             w = words.pop(0)
             words.append(w.capitalize())
         w = ''.join(words)
-        result.append(w)
+        result.add(w)
         if len(words) > 1:
-            result.append('_'.join(words))
+            result.add('_'.join(words))
         if args.l337 or args.all:
-            result=result+f_l337(w,args)
+            result.update(f_l337(w,args))
         else:
-            total=[]
+            total=set()
             if args.dollar:
                 for x in result:
                     if x.find('s')!=-1 or x.find('S')!=-1:
-                        total.append(x.replace('s','$').replace('S','$'))
+                        total.add(x.replace('s','$').replace('S','$'))
             if args.at:
                 for x in result:
                     if x.find('a')!=-1 or x.find('A')!=-1:
-                        total.append(x.replace('a','@').replace('A','@'))
-            result=result+total
-    total=[]
+                        total.add(x.replace('a','@').replace('A','@'))
+            result.update(total)
+    total.clear()
     for x in result:
-        total=total+base(x,len(words))
-    result=list(set(result+total)) #temporary fix for removing duplicates.
+        total.update(base(x,len(words)))
+    result.update(total)
     for x in result:
         print(x,file=args.output)
 
 def base(w, length):
     result=year_signs(w)
-    result+=year_signs(w.lower())
+    result.update(year_signs(w.lower()))
     if not w.isupper():
-        result+=year_signs(w.upper())
+        result.update(year_signs(w.upper()))
     if length > 1: #w was a single word originally, it comes capitalized in first place. This is a check for avoid duplicates.
-        result+=year_signs(w.capitalize())
+        result.update(year_signs(w.capitalize()))
     if hasVocal(w):
-        result+=year_signs(upperVocal(w))
+        result.update(year_signs(upperVocal(w)))
         if w.capitalize() != year_signs(upperVocal(w).swapcase()):
-            result+=year_signs(upperVocal(w).swapcase())
+            result.update(year_signs(upperVocal(w).swapcase()))
     return result
 
 def hasVocal(word):
     return word.find('a')!=-1 or word.find('A')!=-1 or word.find('e')!=-1 or word.find('E')!=-1 or word.find('i')!= -1 or word.find('I')!=-1 or word.find('o')!=-1 or word.find('O')!=-1 or word.find('u')!=-1 or word.find('U')!=-1
+
 def upperVocal(word):
     return word.lower().replace('a','A').replace('e','E').replace('i','I').replace('o','O').replace('u','U')
 
 def year_signs(w1):
-    result=[]
-    result += signs(w1,1)
-    result += signs(w1,2)
+    result=set()
+    result.update(signs(w1,1))
+    result.update(signs(w1,2))
     if args.year:
-        result += year(w1,1)
-        result += year(w1,2)
+        result.update(year(w1,1))
+        result.update(year(w1,2))
         for x in year(w1,1):
-            result += signs(x,1)
-            result += signs(x,2)
+            result.update(signs(x,1))
+            result.update(signs(x,2))
         for x in signs(w1,1):
-            result += year(x,1)
-            result += year(x,2)
+            result.update(year(x,1))
+            result.update(year(x,2))
         for x in year(w1,2):
-            result += signs(x,2)
+            result.update(signs(x,2))
         for x in signs(w1,2):
-            result += year(x,2)
+            result.update(year(x,2))
     return result
 
 def year(word,mode):
-    total=[]
+    total=set()
     for y in args.year:
         if mode == 1:
-            total.append(word+str(y))
-            total.append(word+str(y)[::-1])
-            total.append(word+str(y)[2:])
-            total.append(word+str(y)[2:][::-1])
+            total.add(word+str(y))
+            total.add(word+str(y)[::-1])
+            total.add(word+str(y)[2:])
+            total.add(word+str(y)[2:][::-1])
         else:
-            total.append(str(y)+word)
-            total.append(str(y)[::-1]+word)
-            total.append(str(y)[2:]+word)
-            total.append(str(y)[2:][::-1]+word)
+            total.add(str(y)+word)
+            total.add(str(y)[::-1]+word)
+            total.add(str(y)[2:]+word)
+            total.add(str(y)[2:][::-1]+word)
     return total
 
 def signs(word,mode):
     signs_list=['*','#','\'','?','¡','¿','!','\\','|','º','ª','\"','@','·','$','~','%','&','/','(',')','=','^','[',']','{','}','+','<','>','_','-',';',',','.']
-    result=[]
+    result=set()
     for x in signs_list:
         if mode == 1:
-            result.append(word+x)
+            result.add(word+x)
         else:
-            result.append(x+word)
+            result.add(x+word)
     return result
 
 def l337_a(word):
@@ -170,12 +171,12 @@ def f_l337(word,args):
     return fr_l337(word,l337_list,0)
 
 def fr_l337(w,l_list,j):
-    total=[]
+    total=set()
     for i in range(j,len(l_list)):
         word=l_list[i](w)
         if word is not None:
-            total.append(word)
-            total+=fr_l337(word,l_list,j+1)
+            total.add(word)
+            total.update(fr_l337(word,l_list,j+1))
     return total
 
 if __name__ == "__main__":
