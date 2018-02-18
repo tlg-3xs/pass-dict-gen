@@ -61,6 +61,7 @@ def base(w, length):
 
 def hasVocal(word):
     return word.find('a')!=-1 or word.find('A')!=-1 or word.find('e')!=-1 or word.find('E')!=-1 or word.find('i')!= -1 or word.find('I')!=-1 or word.find('o')!=-1 or word.find('O')!=-1 or word.find('u')!=-1 or word.find('U')!=-1
+
 def upperVocal(word):
     return word.lower().replace('a','A').replace('e','E').replace('i','I').replace('o','O').replace('u','U')
 
