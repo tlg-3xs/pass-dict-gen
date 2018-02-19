@@ -49,7 +49,7 @@ def main(args):
                                 if x.find('a')!=-1 or x.find('A')!=-1:
                                     total.add(x.replace('a','@').replace('A','@'))
                         result.update(total)
-        except KeyboardInterrupt:
+        except KeyboardInterrupt: #allows the use of Ctrl+C as EOF
             pass
         total=set()
         for x in result:
