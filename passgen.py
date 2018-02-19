@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import sys, argparse, datetime, signal
+import sys, argparse, datetime
 
 def arg_parser():
     parser = argparse.ArgumentParser(description="Creates a custom password wordlist from a set of keywords and phrases.")
