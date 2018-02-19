@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-import sys, argparse, datetime
+import sys, argparse, datetime, signal
 
 def arg_parser():
     parser = argparse.ArgumentParser(description="Creates a custom password wordlist from a set of keywords and phrases.")
@@ -10,43 +10,62 @@ def arg_parser():
     parser.add_argument('-d','--dollar', dest='dollar', action='store_true', help='Replaces s and S with $.')
     parser.add_argument('-at', dest='at', action='store_true', help='Replaces a and A with @.')
     parser.add_argument('-l','--l337','--l33t', dest='l337', action='store_true', help='Replaces letters with numbers.')
+    parser.add_argument('-q','--quiet',dest='quiet',action='store_true', help='Suppresses the message requesting input from stdin. Use it when the input is provided by another program.')
+    parser.add_argument('-min','--minimum',dest='min',action='store', type=int, default=1, help='Minimum length of password. Default=1')
+    parser.add_argument('-max','--maximum',dest='max',action='store', type=int, default=200, help='Maximum length of password. Default=200')
     return parser.parse_args()
 
 def main(args):
-    result=set()
-    if args.all: #check if --all flag has been set
-        args.year.append(datetime.datetime.now().year) #add the current year to the list
-    args.year=list(set(args.year)) #remove duplicates if there's any
-    for lines in args.input: #read from choosen input
-        words = lines.strip().split()
-        for i in range(len(words)):
-            w = words.pop(0)
-            words.append(w.capitalize())
-        w = ''.join(words)
-        result.add(w)
-        result.add(w.lower())
-        if len(words) > 1: #check if it's a single word or a sentence
-            result.add('_'.join(words))
-            result.add('_'.join(words).lower())
-        if args.l337 or args.all: #check if l337 or --all flags has been set
-            result.update(f_l337(w,args))
-        else:
-            total=set()
-            if args.dollar: #check if dollar flag has been set
-                for x in result:
-                    if x.find('s')!=-1 or x.find('S')!=-1:
-                        total.add(x.replace('s','$').replace('S','$'))
-            if args.at: #check if at flag has been set
-                for x in result:
-                    if x.find('a')!=-1 or x.find('A')!=-1:
-                        total.add(x.replace('a','@').replace('A','@'))
-            result.update(total)
-    total=set()
-    for x in result:
-        total.update(base(x,len(words)))
-    result.update(total)
-    for x in result:
-        print(x,file=args.output)
+    try:
+        result=set()
+        if args.all: #check if --all flag has been set
+            args.year.append(datetime.datetime.now().year) #add the current year to the list
+        args.year=list(set(args.year)) #remove duplicates if there's any
+        if args.input == sys.stdin and not args.quiet:
+            print("Insert input, one per line. Finish with a newline plus ctrl+c:", file=sys.stderr)
+        try:
+            for lines in args.input: #read from choosen input
+                words = lines.strip().split()
+                if words: #check for avoid empty lines
+                    for i in range(len(words)):
+                        w = words.pop(0)
+                        words.append(w.capitalize())
+                    w = ''.join(words)
+                    result.add(w)
+                    result.add(w.lower())
+                    if len(words) > 1: #check if it's a single word or a sentence
+                        result.add('_'.join(words))
+                        result.add('_'.join(words).lower())
+                    if args.l337 or args.all: #check if l337 or --all flags has been set
+                        result.update(f_l337(w,args))
+                    else:
+                        total=set()
+                        if args.dollar: #check if dollar flag has been set
+                            for x in result:
+                                if x.find('s')!=-1 or x.find('S')!=-1:
+                                    total.add(x.replace('s','$').replace('S','$'))
+                        if args.at: #check if at flag has been set
+                            for x in result:
+                                if x.find('a')!=-1 or x.find('A')!=-1:
+                                    total.add(x.replace('a','@').replace('A','@'))
+                        result.update(total)
+        except KeyboardInterrupt:
+            pass
+        total=set()
+        for x in result:
+            total.update(base(x,len(words)))
+        result.update(total)
+        for x in result:
+            if args.min <= len(x) and args.max >= len(x):
+                print(x,file=args.output)
+    except KeyboardInterrupt:
+        print("Catched SIGINT. Exiting...")
+        if args.input != sys.stdin:
+            args.input.close()
+        if args.output != sys.stdout:
+            args.output.close()
+        sys.exit(0)
+
 
 def base(w, length):
     result=year_signs(w)
