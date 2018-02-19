@@ -10,54 +10,69 @@ def arg_parser():
     parser.add_argument('-d','--dollar', dest='dollar', action='store_true', help='Replaces s and S with $.')
     parser.add_argument('-at', dest='at', action='store_true', help='Replaces a and A with @.')
     parser.add_argument('-l','--l337','--l33t', dest='l337', action='store_true', help='Replaces letters with numbers.')
-    parser.add_argument('-q','--quiet',dest='quiet',action='store_true', help='Suppresses the message requesting input from stdin. Use it when the input is provided by another program.')
     parser.add_argument('-min','--minimum',dest='min',action='store', type=int, default=1, help='Minimum length of password. Default=1')
     parser.add_argument('-max','--maximum',dest='max',action='store', type=int, default=200, help='Maximum length of password. Default=200')
+    group=parser.add_mutually_exclusive_group()
+    group.add_argument('-q','--quiet',dest='quiet',action='store_true', help='Suppresses informative output.')
+    group.add_argument('-v','--verbose',dest='verbose',action='store_true', help='Adds more informative output.')
     return parser.parse_args()
 
 def main(args):
     try:
-        result=set()
+        count=0
+        pset=set()
         if args.all: #check if --all flag has been set
             args.year.append(datetime.datetime.now().year) #add the current year to the list
         args.year=list(set(args.year)) #remove duplicates if there's any
         if args.input == sys.stdin and not args.quiet:
             print("Insert input, one per line. Finish with a newline plus ctrl+c:", file=sys.stderr)
         try:
-            for lines in args.input: #read from choosen input
-                words = lines.strip().split()
-                if words: #check for avoid empty lines
-                    for i in range(len(words)):
-                        w = words.pop(0)
-                        words.append(w.capitalize())
-                    w = ''.join(words)
-                    result.add(w)
-                    result.add(w.lower())
-                    if len(words) > 1: #check if it's a single word or a sentence
-                        result.add('_'.join(words))
-                        result.add('_'.join(words).lower())
-                    if args.l337 or args.all: #check if l337 or --all flags has been set
-                        result.update(f_l337(w,args))
-                    else:
-                        total=set()
-                        if args.dollar: #check if dollar flag has been set
-                            for x in result:
-                                if x.find('s')!=-1 or x.find('S')!=-1:
-                                    total.add(x.replace('s','$').replace('S','$'))
-                        if args.at: #check if at flag has been set
-                            for x in result:
-                                if x.find('a')!=-1 or x.find('A')!=-1:
-                                    total.add(x.replace('a','@').replace('A','@'))
-                        result.update(total)
+            lines=set()
+            for line in args.input: #read from choosen input
+                lines.add(line.strip())
         except KeyboardInterrupt: #allows the use of Ctrl+C as EOF
             pass
+        result=set()
         total=set()
-        for x in result:
-            total.update(base(x,len(words)))
-        result.update(total)
-        for x in result:
+        for line in lines:
+            if args.verbose:
+                print("Working on: "+line, file=sys.stderr)
+            result.clear()
+            words = line.split()
+            if words: #check for avoid empty lines
+                for i in range(len(words)):
+                    w = words.pop(0)
+                    words.append(w.capitalize())
+                w = ''.join(words)
+                result.add(w)
+                result.add(w.lower())
+                if len(words) > 1: #check if it's a single word or a sentence
+                    result.add('_'.join(words))
+                    result.add('_'.join(words).lower())
+                if args.l337 or args.all: #check if l337 or --all flags has been set
+                    result.update(f_l337(w,args))
+                else:
+                    total.clear()
+                    if args.dollar: #check if dollar flag has been set
+                        for x in result:
+                            if x.find('s')!=-1 or x.find('S')!=-1:
+                                total.add(x.replace('s','$').replace('S','$'))
+                    if args.at: #check if at flag has been set
+                        for x in result:
+                            if x.find('a')!=-1 or x.find('A')!=-1:
+                                total.add(x.replace('a','@').replace('A','@'))
+                    result.update(total)
+                total.clear()
+                for x in result:
+                    total.update(base(x))
+                result.update(total)
+            pset.update(result)
+        for x in pset:
             if args.min <= len(x) and args.max >= len(x):
                 print(x,file=args.output)
+                count+=1
+        if not args.quiet:
+            print("Total combinations: "+str(count), file=sys.stderr)
     except KeyboardInterrupt:
         print("Catched SIGINT. Exiting...")
         if args.input != sys.stdin:
@@ -67,11 +82,11 @@ def main(args):
         sys.exit(0)
 
 
-def base(w, length):
+def base(w):
     result=year_signs(w)
     result.update(year_signs(w.lower()))
     result.update(year_signs(w.upper()))
-    if length > 1: #w was a single word originally, it comes capitalized in first place. This is a check for avoid duplicates.
+    if not w.istitle() or w.find('_')!=1: #if w was a single word originally, it comes capitalized in first place. This is a check for avoid duplicates.
         result.update(year_signs(w.capitalize()))
     if hasVowel(w):
         result.update(year_signs(upperVowel(w)))
