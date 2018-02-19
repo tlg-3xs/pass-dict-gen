@@ -20,7 +20,6 @@ def arg_parser():
 def main(args):
     try:
         count=0
-        pset=set()
         if args.all: #check if --all flag has been set
             args.year.append(datetime.datetime.now().year) #add the current year to the list
         args.year=list(set(args.year)) #remove duplicates if there's any
@@ -31,15 +30,15 @@ def main(args):
             for line in args.input: #read from choosen input
                 lines.add(line.strip())
         except KeyboardInterrupt: #allows the use of Ctrl+C as EOF
-            pass
+            print(file=sys.stdout)
         result=set()
         total=set()
         for line in lines:
-            if args.verbose:
-                print("Working on: "+line, file=sys.stderr)
             result.clear()
             words = line.split()
             if words: #check for avoid empty lines
+                if args.verbose:
+                    print("Working on: "+line, file=sys.stderr)
                 for i in range(len(words)):
                     w = words.pop(0)
                     words.append(w.capitalize())
@@ -66,15 +65,15 @@ def main(args):
                 for x in result:
                     total.update(base(x))
                 result.update(total)
-            pset.update(result)
-        for x in pset:
-            if args.min <= len(x) and args.max >= len(x):
-                print(x,file=args.output)
-                count+=1
+            for x in result:
+                if args.min <= len(x) and args.max >= len(x):
+                    print(x,file=args.output)
+                    count+=1
         if not args.quiet:
             print("Total combinations: "+str(count), file=sys.stderr)
     except KeyboardInterrupt:
-        print("Catched SIGINT. Exiting...")
+        print(file=sys.stdout)
+        print("Catched SIGINT. Exiting...",file=sys.stderr)
         if args.input != sys.stdin:
             args.input.close()
         if args.output != sys.stdout:
