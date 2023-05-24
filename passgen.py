@@ -13,11 +13,12 @@ class Logger():
         self.set_level(level)
 
     def _log(self, msg, level='INFO'):
-        msg = f"[{datetime.now().strftime('%Y/%m/%d %H:%M:%S')}] ({level}) {msg}"
-        print(msg, file=stderr)
-        if self.file:
-            with open(self.file, 'a') as f:
-                f.write(msg + '\n')
+        if self.accepted_levels.find(self.level) <=  self.accepted_levels.find(level):
+            msg = f"[{datetime.now().strftime('%Y/%m/%d %H:%M:%S')}] ({level}) {msg}"
+            print(msg, file=stderr)
+            if self.file:
+                with open(self.file, 'a') as f:
+                    f.write(msg + '\n')
 
     def set_level(self, level):
         if self.level is None:
