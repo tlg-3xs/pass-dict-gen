@@ -14,7 +14,7 @@ class Logger():
 
     def _log(self, msg, level='INFO'):
         msg = f"[{datetime.now().strftime('%Y/%m/%d %H:%M:%S')}] ({level}) {msg}"
-        print(msg)
+        print(msg, file=stderr)
         if self.file:
             with open(self.file, 'a') as f:
                 f.write(msg + '\n')
@@ -57,6 +57,7 @@ class PasswordDictGenerator():
             "quiet": quiet,
             "verbose": verbose
         }
+        self.logger = Logger(level='DEBUG')
 
     def main(self):
         try:
@@ -66,7 +67,7 @@ class PasswordDictGenerator():
                 self.year.append(datetime.now().year) #add the current year to the list
             self.year=list(set(self.year)) #remove duplicates if there's any
             if self.input == stdin and not self.flags["quiet"]:
-                stderr.write("Insert input, one per line. Finish with a newline plus ctrl+c:\n")
+                self.logger.info("Insert input, one per line. Finish with a newline plus ctrl+c:")
             try:
                 lines=set()
                 for line in self.input: #read from choosen input
@@ -77,7 +78,7 @@ class PasswordDictGenerator():
             total=set()
             for line in lines:
                 if self.flags["verbose"]:
-                    print("Working on: "+line, file=stderr)
+                    self.logger.debug(f"Working on: {line}")
                 result.clear()
                 words = line.split()
                 if words: #check for avoid empty lines
@@ -96,26 +97,26 @@ class PasswordDictGenerator():
                         total.clear()
                         if self.flags["dollar"]: #check if dollar flag has been set
                             for x in result:
-                                if x.find('s')!=-1 or x.find('S')!=-1:
-                                    total.add(x.replace('s','$').replace('S','$'))
+                                if 's' in x.lower():
+                                    total.add(self.dollar(x))
                         if self.flags["at"]: #check if at flag has been set
                             for x in result:
-                                if x.find('a')!=-1 or x.find('A')!=-1:
-                                    total.add(x.replace('a','@').replace('A','@'))
+                                if 'a' in x.lower():
+                                    total.add(self.at(x))
                         result.update(total)
                     total.clear()
                     for x in result:
-                        total.update(base(x))
+                        total.update(self.base(x))
                     result.update(total)
                 pset.update(result)
             for x in pset:
                 if self.min <= len(x) and self.max >= len(x):
-                    print(x,file=self.output)
+                    self.output.write(f"{x}\n")
                     count+=1
             if not self.flags["quiet"]:
-                print("Total combinations: "+str(count), file=stderr)
+                self.logger.info(f"Total combinations: {count}")
         except KeyboardInterrupt:
-            print("Catched SIGINT. Exiting...")
+            self.logger.info("\nCatched SIGINT. Exiting...")
             if self.input != stdin:
                 self.input.close()
             if self.output != stdout:
@@ -124,15 +125,15 @@ class PasswordDictGenerator():
 
 
     def base(self, w):
-        result=year_signs(w)
-        result.update(year_signs(w.lower()))
-        result.update(year_signs(w.upper()))
+        result=self.year_signs(w)
+        result.update(self.year_signs(w.lower()))
+        result.update(self.year_signs(w.upper()))
         if not w.istitle() or w.find('_')!=1: #if w was a single word originally, it comes capitalized in first place. This is a check for avoid duplicates.
-            result.update(year_signs(w.capitalize()))
-        if hasVowel(w):
-            result.update(year_signs(upperVowel(w)))
-            if w.capitalize() != year_signs(upperVowel(w).swapcase()):
-                result.update(year_signs(upperVowel(w).swapcase()))
+            result.update(self.year_signs(w.capitalize()))
+        if self.hasVowel(w):
+            result.update(self.year_signs(self.upperVowel(w)))
+            if w.capitalize() != self.year_signs(self.upperVowel(w).swapcase()):
+                result.update(self.year_signs(self.upperVowel(w).swapcase()))
         return result
 
     def hasVowel(self, word): #simple function that returns if a word has a vowel.
@@ -146,21 +147,21 @@ class PasswordDictGenerator():
 
     def year_signs(self, w1): #returns a set with combinations of the word and the signs and, if specified, the year(s)
         result=set()
-        result.update(signs(w1,1)) #combines the word and signs after it
-        result.update(signs(w1,2)) #combines the word and signs before it
+        result.update(self.signs(w1,1)) #combines the word and signs after it
+        result.update(self.signs(w1,2)) #combines the word and signs before it
         if args.year:
-            result.update(year(w1,1)) #combines the word and year(s) after it
-            result.update(year(w1,2)) #combines the word and year(s) before it
-            for x in year(w1,1):
-                result.update(signs(x,1)) #combination of word+year+sign
-                result.update(signs(x,2)) #combination of sign+word+year
-            for x in signs(w1,1):
-                result.update(year(x,1)) #combination of word+sign+year
-                result.update(year(x,2)) #combination of year+word+sign
-            for x in year(w1,2):
-                result.update(signs(x,2)) #combination of sign+year+word
-            for x in signs(w1,2):
-                result.update(year(x,2)) #combination of year+sign+word
+            result.update(self.year(w1,1)) #combines the word and year(s) after it
+            result.update(self.year(w1,2)) #combines the word and year(s) before it
+            for x in self.year(w1,1):
+                result.update(self.signs(x,1)) #combination of word+year+sign
+                result.update(self.signs(x,2)) #combination of sign+word+year
+            for x in self.signs(w1,1):
+                result.update(self.year(x,1)) #combination of word+sign+year
+                result.update(self.year(x,2)) #combination of year+word+sign
+            for x in self.year(w1,2):
+                result.update(self.signs(x,2)) #combination of sign+year+word
+            for x in self.signs(w1,2):
+                result.update(self.year(x,2)) #combination of year+sign+word
         return result
 
     def year(self, word,mode): #returns a set with combinations of the word and the year(s)
@@ -183,9 +184,9 @@ class PasswordDictGenerator():
         result=set()
         for x in signs_list:
             if mode == 1:
-                result.add(word+x) #combination of word+sign
+                result.add(f"{word}{x}") #combination of word+sign
             else:
-                result.add(x+word) #combination of sign+word
+                result.add(f"{x}{word}") #combination of sign+word
         return result
 
     def _generic_sub(self, word, char, rep):
