@@ -10,19 +10,22 @@ class Logger():
     def __init__(self, file=None, level='DEBUG'):
         self.file = file
         self.accepted_levels = ['DEBUG', 'INFO', 'WARNING', 'ERROR']
+        self.level = 'DEBUG'
         self.set_level(level)
+        self.stdout = stderr
 
     def _log(self, msg, level='INFO'):
-        if self.accepted_levels.find(self.level) <=  self.accepted_levels.find(level):
-            msg = f"[{datetime.now().strftime('%Y/%m/%d %H:%M:%S')}] ({level}) {msg}"
-            print(msg, file=stderr)
+        if self.accepted_levels.index(self.level) <=  self.accepted_levels.index(level):
+            msg = f"[{datetime.now().strftime('%Y/%m/%d %H:%M:%S')}] ({level}) {msg}\n"
+            self.stdout.write(msg)
             if self.file:
                 with open(self.file, 'a') as f:
-                    f.write(msg + '\n')
+                    f.write(msg)
+
+    def newline(self):
+        self.stdout.write('\n')
 
     def set_level(self, level):
-        if self.level is None:
-            self.level = 'DEBUG'
         if not level or level.upper() not in self.accepted_levels:
             self.error(f'Invalid log level "{level}". Keeping {self.level} level')
         else:
@@ -44,14 +47,14 @@ class Logger():
 
 class PasswordDictGenerator():
 
-    def __init__(self, input=None, output=None, year=[], all=False, dollar=False, at=False, l337=False, min=1, max=200, quiet=False, verbose=False):
-        self.input = input
-        self.output = output
-        self.year = year
-        self.min = min,
-        self.max = max,
+    def __init__(self, _input=None, _output=None, year=[], _all=False, dollar=False, at=False, l337=False, _min: int=1, _max: int=200, quiet=False, verbose=False):
+        self.input = _input
+        self.output = _output
+        self._year = year
+        self.min = _min
+        self.max = _max
         self.flags = {
-            "all": all,
+            "all": _all,
             "dollar": dollar,
             "at": at,
             "l337": l337,
@@ -65,8 +68,8 @@ class PasswordDictGenerator():
             count=0
             pset=set()
             if self.flags["all"]: #check if --all flag has been set
-                self.year.append(datetime.now().year) #add the current year to the list
-            self.year=list(set(self.year)) #remove duplicates if there's any
+                self._year.append(datetime.now().year) #add the current year to the list
+            self._year=list(set(self._year)) #remove duplicates if there's any
             if self.input == stdin and not self.flags["quiet"]:
                 self.logger.info("Insert input, one per line. Finish with a newline plus ctrl+c:")
             try:
@@ -74,7 +77,7 @@ class PasswordDictGenerator():
                 for line in self.input: #read from choosen input
                     lines.add(line.strip())
             except KeyboardInterrupt: #allows the use of Ctrl+C as EOF
-                pass
+                self.logger.newline()
             result=set()
             total=set()
             for line in lines:
@@ -93,7 +96,7 @@ class PasswordDictGenerator():
                         result.add('_'.join(words))
                         result.add('_'.join(words).lower())
                     if self.flags["l337"] or self.flags["all"]: #check if l337 or --all flags has been set
-                        result.update(f_l337(w))
+                        result.update(self.f_l337(w))
                     else:
                         total.clear()
                         if self.flags["dollar"]: #check if dollar flag has been set
@@ -237,7 +240,7 @@ class PasswordDictGenerator():
                 l337_list.append(self.dollar)
         if 't' in word_lower:
             l337_list.append(self.l337_t)
-        return fr_l337(word,l337_list,0)
+        return self.fr_l337(word,l337_list,0)
 
     def fr_l337(self, w,l_list,j): #recursive function for making combinations of l337 functions of the word
         total=set()
@@ -245,21 +248,21 @@ class PasswordDictGenerator():
             word=l_list[i](w)
             if word is not None:
                 total.add(word)
-                total.update(fr_l337(word,l_list,j+1))
+                total.update(self.fr_l337(word,l_list,j+1))
         return total
 
 
 def arg_parser():
     parser = ArgumentParser(description="Creates a custom password wordlist from a set of keywords and phrases.")
-    parser.add_argument('-i','--input',dest='input', type=FileType('r'), default=stdin, nargs='?', help='Input file for keywords. If not specified defaults to stdin.')
-    parser.add_argument('-o','--output', dest='output', type=FileType('w'), default=stdout, nargs='?', help='Output file. If not specified defaults to stdout.')
+    parser.add_argument('-i','--input',dest='_input', type=FileType('r'), default=stdin, nargs='?', help='Input file for keywords. If not specified defaults to stdin.')
+    parser.add_argument('-o','--output', dest='_output', type=FileType('w'), default=stdout, nargs='?', help='Output file. If not specified defaults to stdout.')
     parser.add_argument('-y','--year', dest='year', type=int, action='append', default=[], const=datetime.now().year, nargs='?', help='Year for making combinations. Can be specified multiple times. If it\'s specified without value defaults to actual year.')
-    parser.add_argument('--all', action='store_true', help='Makes all posible combinations. -y value can be specified normally (by default assumes -y).')
+    parser.add_argument('--all', dest='_all', action='store_true', help='Makes all posible combinations. -y value can be specified normally (by default assumes -y).')
     parser.add_argument('-d','--dollar', dest='dollar', action='store_true', help='Replaces s and S with $.')
     parser.add_argument('-at', dest='at', action='store_true', help='Replaces a and A with @.')
     parser.add_argument('-l','--l337','--l33t', dest='l337', action='store_true', help='Replaces letters with numbers.')
-    parser.add_argument('-min','--minimum',dest='min',action='store', type=int, default=1, help='Minimum length of password. Default=1')
-    parser.add_argument('-max','--maximum',dest='max',action='store', type=int, default=200, help='Maximum length of password. Default=200')
+    parser.add_argument('-min','--minimum',dest='_min',action='store', type=int, default=1, help='Minimum length of password. Default=1')
+    parser.add_argument('-max','--maximum',dest='_max',action='store', type=int, default=200, help='Maximum length of password. Default=200')
     group=parser.add_mutually_exclusive_group()
     group.add_argument('-q','--quiet',dest='quiet',action='store_true', help='Suppresses informative output.')
     group.add_argument('-v','--verbose',dest='verbose',action='store_true', help='Adds more informative output.')
@@ -267,4 +270,5 @@ def arg_parser():
 
 if __name__ == "__main__":
     args = arg_parser()
-    PasswordDictGenerator(**args).main()
+    pdg = PasswordDictGenerator(**{k: v for k,v in args._get_kwargs()})
+    pdg.main()
