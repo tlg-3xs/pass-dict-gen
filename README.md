@@ -9,7 +9,7 @@ At the moment, it's features are:
 - Makes combinations with punctuation symbols.
 
 ToDo:
-- Make the code clearer.
+- Make the code clearer. (WIP)
 ```
 usage: passgen.py [-h] [-i [INPUT]] [-o [OUTPUT]] [-y [YEAR]] [--all] [-d]
                   [-at] [-l] [-min MIN] [-max MAX] [-q | -v]
@@ -39,4 +39,5 @@ optional arguments:
   -q, --quiet           Suppresses informative output.
   -v, --verbose         Adds more informative output.
 ```
-Disclaimer: This project is designed for the purpose of enhancing my personal understanding of Python and is intended to be used for auditing the strength of one's own passwords. It is not designed or intended to be used for any illegal activities, including unauthorized access to systems or data. The creator of this project does not condone such misuse and will not be held responsible for any damages or legal consequences resulting from such activities. Users are advised to use this tool responsibly and in compliance with all applicable laws and regulations.
+## Disclaimer
+This project is designed for the purpose of enhancing my personal understanding of Python and is intended to be used for auditing the strength of one's own passwords. It is not designed or intended to be used for any illegal activities, including unauthorized access to systems or data. The creator of this project does not condone such misuse and will not be held responsible for any damages or legal consequences resulting from such activities. Users are advised to use this tool responsibly and in compliance with all applicable laws and regulations.
