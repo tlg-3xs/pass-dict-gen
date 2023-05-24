@@ -1,15 +1,13 @@
 # pass-dict-gen
-Custom password dictionary generator written in python
-Creates password dictionaries from a list of words and/or phrases.
-At the moment, it's features are:
-- Replaces some letters with it's numeric equivalent.
-- Replaces s and S with dollars.
-- Replaces a and A with @.
-- Makes combinations with provided and/or actual year.
-- Makes combinations with punctuation symbols.
+Pass-Dict-Gen is a tool developed in Python, designed to generate custom password dictionaries derived from a user-provided list of words and/or phrases. The current functionality of this utility encompasses the following features:
+- Substitution of certain letters with their numeric equivalents, enhancing the complexity of the resultant passwords.
+- Replacement of the letters 's' and 'S' with the dollar symbol ('$'), further diversifying the password pool.
+- Substitution of the letters 'a' and 'A' with the '@' symbol, adding an additional layer of complexity.
+- Generation of password combinations incorporating the current year or a user-specified year, providing a temporal aspect to the password creation process.
+- Creation of password combinations that include punctuation symbols, thereby increasing the potential password permutations.
 
-ToDo:
-- Make the code clearer. (WIP)
+Future Development:
+I'm currently in the process of refining the codebase to enhance readability and maintainability, ensuring that Pass-Dict-Gen remains a robust and user-friendly tool for password dictionary generation.
 ```
 usage: passgen.py [-h] [-i [INPUT]] [-o [OUTPUT]] [-y [YEAR]] [--all] [-d]
                   [-at] [-l] [-min MIN] [-max MAX] [-q | -v]
