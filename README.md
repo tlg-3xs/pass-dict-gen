@@ -39,4 +39,4 @@ optional arguments:
   -q, --quiet           Suppresses informative output.
   -v, --verbose         Adds more informative output.
 ```
-This is a project for improve my own python knowledge, and is meant for auditing own passwords strength. I'm not responsible for improper use.
+Disclaimer: This project is designed for the purpose of enhancing my personal understanding of Python and is intended to be used for auditing the strength of one's own passwords. It is not designed or intended to be used for any illegal activities, including unauthorized access to systems or data. The creator of this project does not condone such misuse and will not be held responsible for any damages or legal consequences resulting from such activities. Users are advised to use this tool responsibly and in compliance with all applicable laws and regulations.
